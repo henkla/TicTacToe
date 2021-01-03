@@ -137,6 +137,7 @@ namespace TicTacToe
                     oWins++;
                     OWinsTextBox.Text = oWins.ToString();
                 }
+                NewRoundPreparations();
             }
             else if (winnerIsDeclared == false && isDraw == true)
             {
@@ -144,10 +145,11 @@ namespace TicTacToe
                 await gameIsDraw.ShowAsync();
                 draws++;
                 DrawsTextBox.Text = draws.ToString();
+                NewRoundPreparations();
             }
         }
 
-        private void NewGameClicked(object sender, RoutedEventArgs e)
+        private void NewRoundPreparations()
         {
             A1Button.Content = null;
             A2Button.Content = null;
@@ -171,6 +173,19 @@ namespace TicTacToe
 
             winnerIsDeclared = false;
             isDraw = false;
+        }
+
+
+        private void NewGameClicked(object sender, RoutedEventArgs e)
+        {
+            NewRoundPreparations();
+
+            xWins = 0;
+            oWins = 0;
+            draws = 0;
+            XWinsTextBox.Text = xWins.ToString();
+            OWinsTextBox.Text = oWins.ToString();
+            DrawsTextBox.Text = draws.ToString();
         }
 
         private void ExitGameClicked(object sender, RoutedEventArgs e)
