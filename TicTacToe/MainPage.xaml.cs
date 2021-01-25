@@ -109,7 +109,7 @@ namespace TicTacToe
                 C2Button.Content != null &&
                 C3Button.Content != null &&
                 winnerIsDeclared == false
-                ) { winnerIsDeclared = false; isDraw = true; }
+                ) { winnerIsDeclared = false; isDraw = true; } // End of draw check
 
             if (winnerIsDeclared)
             {
@@ -186,6 +186,8 @@ namespace TicTacToe
             XWinsTextBox.Text = xWins.ToString();
             OWinsTextBox.Text = oWins.ToString();
             DrawsTextBox.Text = draws.ToString();
+            currentPlayer = true;
+            activePlayerChanged(currentPlayer);
         }
 
         private void ExitGameClicked(object sender, RoutedEventArgs e)
@@ -195,7 +197,7 @@ namespace TicTacToe
 
         private async void AboutClicked(object sender, RoutedEventArgs e)
         {
-            var message = new MessageDialog("Game created by Daniel Riddersporre as a training project!\n\nVersion 1.0");
+            var message = new MessageDialog("Game created by Daniel Riddersporre as a training project!\n\nVersion 1.1");
             await message.ShowAsync();
         }
 
