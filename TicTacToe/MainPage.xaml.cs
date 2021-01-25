@@ -25,7 +25,8 @@ namespace TicTacToe
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        bool currentPlayer = true; //True = X turn, False = O turn
+        enum Player { X, O};
+        Player currentPlayer = Player.X;
         int xWins = 0;
         int oWins = 0;
         int draws = 0;
@@ -38,32 +39,40 @@ namespace TicTacToe
 
             ApplicationView.PreferredLaunchViewSize = new Size(500, 500);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
-
-            activePlayerChanged(currentPlayer);
+            xTurn.Background = new SolidColorBrush(Colors.Green);
+            oTurn.Background = new SolidColorBrush(Colors.White);
         }
 
         private void ButtonClick(object sender, RoutedEventArgs e)
         {
             Button button = (Button)sender;
 
-            if (currentPlayer == true)
+            if (currentPlayer == Player.X)
             {
                 button.Content = "X";
             }
-            else if(currentPlayer == false)
+            else if(currentPlayer == Player.O)
             {
                 button.Content = "O";
             }
 
             button.IsEnabled = false;
 
-            CheckForWinner(currentPlayer);
+            CheckForWinner();
 
-            currentPlayer = !currentPlayer;
-            activePlayerChanged(currentPlayer);
+            if (currentPlayer == Player.X)
+            {
+                currentPlayer = Player.O;
+            }
+            else if (currentPlayer == Player.O)
+            {
+                currentPlayer = Player.X;
+            }
+
+            ActivePlayerChanged();
         }
 
-        private async void CheckForWinner(bool currentPlayer)
+        private async void CheckForWinner()
         {
             if (A1Button.Content == A2Button.Content && A2Button.Content == A3Button.Content && A1Button.Content != null)
             {
@@ -123,14 +132,14 @@ namespace TicTacToe
                 C2Button.IsEnabled = false;
                 C3Button.IsEnabled = false;
 
-                if (currentPlayer == true)
+                if (currentPlayer == Player.X)
                 {
                     var xIsWinner = new MessageDialog("Congratulations X, you are the winner");
                     await xIsWinner.ShowAsync();
                     xWins++;
                     XWinsTextBox.Text = xWins.ToString();
                 }
-                else if (currentPlayer == false)
+                else if (currentPlayer == Player.O)
                 {
                     var oIsWinner = new MessageDialog("Congratulations O, you are the winner");
                     await oIsWinner.ShowAsync();
@@ -186,8 +195,8 @@ namespace TicTacToe
             XWinsTextBox.Text = xWins.ToString();
             OWinsTextBox.Text = oWins.ToString();
             DrawsTextBox.Text = draws.ToString();
-            currentPlayer = true;
-            activePlayerChanged(currentPlayer);
+            currentPlayer = Player.X;
+            ActivePlayerChanged();
         }
 
         private void ExitGameClicked(object sender, RoutedEventArgs e)
@@ -201,14 +210,14 @@ namespace TicTacToe
             await message.ShowAsync();
         }
 
-        private void activePlayerChanged(bool currentPlayer)
+        private void ActivePlayerChanged()
         {
-            if (currentPlayer == true)
+            if (currentPlayer == Player.X)
             {
                 xTurn.Background = new SolidColorBrush(Colors.Green);
                 oTurn.Background = new SolidColorBrush(Colors.White);
             }
-            else if (currentPlayer == false)
+            else if (currentPlayer == Player.O)
             {
                 xTurn.Background = new SolidColorBrush(Colors.White);
                 oTurn.Background = new SolidColorBrush(Colors.Green);
