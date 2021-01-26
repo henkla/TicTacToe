@@ -15,187 +15,202 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Popups;
 using Windows.UI;
+using System.Threading.Tasks;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace TicTacToe
 {
+    public enum Player
+    {
+        X = 0,
+        O = 1
+    };
+
+    public enum Outcome
+    {
+        XWins = 0,
+        OWins = 1,
+        Draws = 2
+    }
+
+    public enum RoundState
+    {
+        Unfinished = 0,
+        Won = 1,
+        Draw = 2,
+    }
+
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        enum Player { X, O};
-        Player currentPlayer = Player.X;
-        int xWins = 0;
-        int oWins = 0;
-        int draws = 0;
-        bool winnerIsDeclared = false;
-        bool isDraw = false;
+        private const Player _defaultStartingPlayer = Player.X;
+
+        private RoundState _roundState;
+        private Player _currentPlayer;
+        private readonly List<Button> _buttons;
+        private readonly IDictionary<Outcome, int> _gameState;
+        private readonly IDictionary<Outcome, TextBlock> _textBlocks;
 
         public MainPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
+
+            _buttons = new List<Button>()
+            {
+                A1Button,
+                A2Button,
+                A3Button,
+                B1Button,
+                B2Button,
+                B3Button,
+                C1Button,
+                C2Button,
+                C3Button
+            };
+
+            _textBlocks = new Dictionary<Outcome, TextBlock>()
+            {
+                { Outcome.OWins, OWinsTextBox },
+                { Outcome.XWins, XWinsTextBox },
+                { Outcome.Draws, DrawsTextBox }
+            };
+
+            _gameState = new Dictionary<Outcome, int>()
+            {
+                { Outcome.OWins, 0 },
+                { Outcome.XWins, 0 },
+                { Outcome.Draws, 0 }
+            };
+
+            _currentPlayer = _defaultStartingPlayer;
+            _roundState = RoundState.Unfinished;
 
             ApplicationView.PreferredLaunchViewSize = new Size(500, 500);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
+
             xTurn.Background = new SolidColorBrush(Colors.Green);
             oTurn.Background = new SolidColorBrush(Colors.White);
         }
 
-        private void ButtonClick(object sender, RoutedEventArgs e)
+        private void GameFieldButtonClick(object sender, RoutedEventArgs e)
         {
-            Button button = (Button)sender;
-
-            if (currentPlayer == Player.X)
-            {
-                button.Content = "X";
-            }
-            else if(currentPlayer == Player.O)
-            {
-                button.Content = "O";
-            }
-
+            var button = (Button)sender;
+            button.Content = _currentPlayer.ToString();
             button.IsEnabled = false;
 
-            CheckForWinner();
+            CheckForWinnerAndHandleOutcome();
 
-            if (currentPlayer == Player.X)
-            {
-                currentPlayer = Player.O;
-            }
-            else if (currentPlayer == Player.O)
-            {
-                currentPlayer = Player.X;
-            }
-
+            // unless game is finished
+            TogglePlayer();
             ActivePlayerChanged();
         }
 
-        private async void CheckForWinner()
+        private async void CheckForWinnerAndHandleOutcome()
         {
             if (A1Button.Content == A2Button.Content && A2Button.Content == A3Button.Content && A1Button.Content != null)
             {
-                winnerIsDeclared = true;
+                _roundState = RoundState.Won;
             }
             else if (B1Button.Content == B2Button.Content && B2Button.Content == B3Button.Content && B1Button.Content != null)
             {
-                winnerIsDeclared = true;
+                _roundState = RoundState.Won;
             }
             else if (C1Button.Content == C2Button.Content && C2Button.Content == C3Button.Content && C1Button.Content != null)
             {
-                winnerIsDeclared = true;
+                _roundState = RoundState.Won;
             }// End of Horizontal check
             else if (A1Button.Content == B1Button.Content && B1Button.Content == C1Button.Content && A1Button.Content != null)
             {
-                winnerIsDeclared = true;
+                _roundState = RoundState.Won;
             }
             else if (A2Button.Content == B2Button.Content && B2Button.Content == C2Button.Content && A2Button.Content != null)
             {
-                winnerIsDeclared = true;
+                _roundState = RoundState.Won;
             }
             else if (A3Button.Content == B3Button.Content && B3Button.Content == C3Button.Content && A3Button.Content != null)
             {
-                winnerIsDeclared = true;
+                _roundState = RoundState.Won;
             }//End of vertical check
             else if (A1Button.Content == B2Button.Content && B2Button.Content == C3Button.Content && A1Button.Content != null)
             {
-                winnerIsDeclared = true;
+                _roundState = RoundState.Won;
             }
             else if (A3Button.Content == B2Button.Content && B2Button.Content == C1Button.Content && A3Button.Content != null)
             {
-                winnerIsDeclared = true;
+                _roundState = RoundState.Won;
             }//End of diagonal check
-            else if
-                (
-                A1Button.Content != null &&
-                A2Button.Content != null &&
-                A3Button.Content != null &&
-                B1Button.Content != null &&
-                B2Button.Content != null &&
-                B3Button.Content != null &&
-                C1Button.Content != null &&
-                C2Button.Content != null &&
-                C3Button.Content != null &&
-                winnerIsDeclared == false
-                ) { winnerIsDeclared = false; isDraw = true; } // End of draw check
-
-            if (winnerIsDeclared)
+            else if (_buttons.All(b => b.Content != null))
             {
-                A1Button.IsEnabled = false;
-                A2Button.IsEnabled = false;
-                A3Button.IsEnabled = false;
-                B1Button.IsEnabled = false;
-                B2Button.IsEnabled = false;
-                B3Button.IsEnabled = false;
-                C1Button.IsEnabled = false;
-                C2Button.IsEnabled = false;
-                C3Button.IsEnabled = false;
-
-                if (currentPlayer == Player.X)
-                {
-                    var xIsWinner = new MessageDialog("Congratulations X, you are the winner");
-                    await xIsWinner.ShowAsync();
-                    xWins++;
-                    XWinsTextBox.Text = xWins.ToString();
-                }
-                else if (currentPlayer == Player.O)
-                {
-                    var oIsWinner = new MessageDialog("Congratulations O, you are the winner");
-                    await oIsWinner.ShowAsync();
-                    oWins++;
-                    OWinsTextBox.Text = oWins.ToString();
-                }
-                NewRoundPreparations();
+                _roundState = RoundState.Draw;
             }
-            else if (winnerIsDeclared == false && isDraw == true)
+
+            // do we have a finished round?
+            if (_roundState != RoundState.Unfinished)
             {
-                var gameIsDraw = new MessageDialog("The game is a draw!");
-                await gameIsDraw.ShowAsync();
-                draws++;
-                DrawsTextBox.Text = draws.ToString();
-                NewRoundPreparations();
+                await HandleFinishedRound();
+                PrepareNewRound();
             }
         }
 
-        private void NewRoundPreparations()
+        private async Task HandleFinishedRound()
         {
-            A1Button.Content = null;
-            A2Button.Content = null;
-            A3Button.Content = null;
-            B1Button.Content = null;
-            B2Button.Content = null;
-            B3Button.Content = null;
-            C1Button.Content = null;
-            C2Button.Content = null;
-            C3Button.Content = null;
+            var dialogText = "";
 
-            A1Button.IsEnabled = true;
-            A2Button.IsEnabled = true;
-            A3Button.IsEnabled = true;
-            B1Button.IsEnabled = true;
-            B2Button.IsEnabled = true;
-            B3Button.IsEnabled = true;
-            C1Button.IsEnabled = true;
-            C2Button.IsEnabled = true;
-            C3Button.IsEnabled = true;
+            if (_roundState == RoundState.Won)
+            {
+                dialogText = $"Congratulations {_currentPlayer}, you are the winner";
 
-            winnerIsDeclared = false;
-            isDraw = false;
+                switch (_currentPlayer)
+                {
+                    case Player.X:
+                        _gameState[Outcome.XWins]++;
+                        _textBlocks[Outcome.XWins].Text = _gameState[Outcome.XWins].ToString();
+                        break;
+                    case Player.O:
+                        _gameState[Outcome.OWins]++;
+                        _textBlocks[Outcome.OWins].Text = _gameState[Outcome.OWins].ToString();
+                        break;
+                }
+            }
+            else if (_roundState == RoundState.Draw)
+            {
+                dialogText = "The game is a draw!";
+                _gameState[Outcome.Draws]++;
+                _textBlocks[Outcome.Draws].Text = _gameState[Outcome.Draws].ToString();
+            }
+
+            var dialog = new MessageDialog(dialogText);
+            await dialog.ShowAsync();
         }
 
+        private void PrepareNewRound()
+        {
+            _buttons.ForEach(b =>
+            {
+                b.Content = null;
+                b.IsEnabled = true;
+            });
+
+            _currentPlayer = _defaultStartingPlayer;
+            _roundState = RoundState.Unfinished;
+        }
 
         private void NewGameClicked(object sender, RoutedEventArgs e)
         {
-            NewRoundPreparations();
+            PrepareNewRound();
 
-            xWins = 0;
-            oWins = 0;
-            draws = 0;
-            XWinsTextBox.Text = xWins.ToString();
-            OWinsTextBox.Text = oWins.ToString();
-            DrawsTextBox.Text = draws.ToString();
-            currentPlayer = Player.X;
+            // totally new game, so reset all previous game's outcome counters
+            foreach (var key in _textBlocks.Keys)
+            {
+                _gameState[key] = 0;
+                _textBlocks[key].Text = "0";
+            }
+
+            // every game must start with player X
+            _currentPlayer = Player.X;
             ActivePlayerChanged();
         }
 
@@ -213,15 +228,29 @@ namespace TicTacToe
 
         private void ActivePlayerChanged()
         {
-            if (currentPlayer == Player.X)
+            switch (_currentPlayer)
             {
-                xTurn.Background = new SolidColorBrush(Colors.Green);
-                oTurn.Background = new SolidColorBrush(Colors.White);
+                case Player.X:
+                    xTurn.Background = new SolidColorBrush(Colors.Green);
+                    oTurn.Background = new SolidColorBrush(Colors.White);
+                    break;
+                case Player.O:
+                    xTurn.Background = new SolidColorBrush(Colors.White);
+                    oTurn.Background = new SolidColorBrush(Colors.Green);
+                    break;
             }
-            else if (currentPlayer == Player.O)
+        }
+
+        private void TogglePlayer()
+        {
+            switch (_currentPlayer)
             {
-                xTurn.Background = new SolidColorBrush(Colors.White);
-                oTurn.Background = new SolidColorBrush(Colors.Green);
+                case Player.X:
+                    _currentPlayer = Player.O;
+                    break;
+                case Player.O:
+                    _currentPlayer = Player.X;
+                    break;
             }
         }
     }
