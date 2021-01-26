@@ -206,7 +206,8 @@ namespace TicTacToe
 
         private async void AboutClicked(object sender, RoutedEventArgs e)
         {
-            var message = new MessageDialog("Game created by Daniel Riddersporre as a training project!\n\nVersion 1.1");
+            var message = new MessageDialog("Game created by Daniel Riddersporre as a training project!\n\nVersion 1.0");
+            message.Title = "About";
             await message.ShowAsync();
         }
 
